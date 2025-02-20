@@ -1,7 +1,13 @@
+import Consortium from "./components/Consortium";
+import Hero from "./components/Hero";
+import LastPublishhed from "./components/LastPublished";
+
 export default function Home() {
   return (
-    <main>
-      <div >Hello world!</div>
-    </main>
+    <div>
+      <Hero/>
+      <Consortium/>
+      <LastPublishhed/>
+    </div>
   );
 }
