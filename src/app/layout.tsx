@@ -15,9 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className="bg-slate-900">
+      <body className="bg-slate-50">
         <Header/>
-        <main className="container mx-auto">
+        <main className=" mx-auto">
           {children}
         </main>
         <Footer/>

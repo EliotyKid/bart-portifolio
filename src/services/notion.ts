@@ -5,58 +5,88 @@ import { NotionToMarkdown } from "notion-to-md"
 
 const notion = new Client({auth: process.env.NOTION_API_KEY})
 const n2m = new NotionToMarkdown({notionClient: notion})
-
 export async function getPosts() {
-  const response = await notion.databases.query({
-    database_id: `${process.env.NOTION_DATABASE_ID}`,
-    filter: {
-      or: [
-        {
-          property: "published",
-          checkbox: {equals: true}
-        }
-      ]
-    }
-  })
+  const response = await fetch(`https://api.notion.com/v1/databases/${process.env.NOTION_DATABASE_ID}/query`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.NOTION_API_KEY}`,
+      "Notion-Version": "2022-06-28",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      filter: { property: "published", checkbox: { equals: true } },
+    }),
+    next: { revalidate: 60 }, // Cache por 60 segundos
+  });
 
-  const typedResponse = response as unknown as NotionDatabaseResponse
+  const data = await response.json();
 
-  const posts = await Promise.all(
-    typedResponse.results.map( async (post) => {
-      const pageId = post.id
-      const title = post.properties.title.title[0]?.plain_text || "Sem título"
-      const slug = post.properties.slug.rich_text[0]?.plain_text || ""
-      const tags = post.properties.tags.multi_select.map((tag) => tag.name)
-      const createdAt = post.created_time
+  const res = data.results.map((post: any) => ({
+    id: post.id,
+    title: post.properties.title.title[0]?.plain_text || "Sem título",
+    slug: post.properties.slug.rich_text[0]?.plain_text || "",
+    tags: post.properties.tags.multi_select.map((tag: any) => tag.name),
+    createdAt: post.created_time,
+    summary: post.properties.summary.rich_text[0]?.plain_text || "",
+  }));
 
-      const summary = post.properties.summary.rich_text[0]?.plain_text || ""
+  return res
 
-      // const mdBlocks = await n2m.pageToMarkdown(pageId)
-      // const fullMarkdown = mdBlocks.map((block) => block.parent).join("\n")
-      // const [summary] = fullMarkdown.split("\n---\n")
-
-      return{
-        id: pageId,
-        title,
-        slug,
-        tags,
-        createdAt,
-        summary
-      }
-    })
-  )
-
-  return posts
-  // return typedResponse.results.map((post) => {
-  //   return {
-  //     id: post.id,
-  //     title: post.properties.title.title[0].plain_text,
-  //     slug: post.properties.slug.rich_text[0].plain_text,
-  //     tags: post.properties.tags.multi_select.map((tag) => tag.name),
-  //     createdAt: post.created_time
-  //   }
-  // })
 }
+
+
+
+// export async function getPosts() {
+//   const response = await notion.databases.query({
+//     database_id: `${process.env.NOTION_DATABASE_ID}`,
+//     filter: {
+//       or: [
+//         {
+//           property: "published",
+//           checkbox: {equals: true}
+//         }
+//       ]
+//     }
+//   })
+
+//   const typedResponse = response as unknown as NotionDatabaseResponse
+
+//   const posts = await Promise.all(
+//     typedResponse.results.map( async (post) => {
+//       const pageId = post.id
+//       const title = post.properties.title.title[0]?.plain_text || "Sem título"
+//       const slug = post.properties.slug.rich_text[0]?.plain_text || ""
+//       const tags = post.properties.tags.multi_select.map((tag) => tag.name)
+//       const createdAt = post.created_time
+
+//       const summary = post.properties.summary.rich_text[0]?.plain_text || ""
+
+//       // const mdBlocks = await n2m.pageToMarkdown(pageId)
+//       // const fullMarkdown = mdBlocks.map((block) => block.parent).join("\n")
+//       // const [summary] = fullMarkdown.split("\n---\n")
+
+//       return{
+//         id: pageId,
+//         title,
+//         slug,
+//         tags,
+//         createdAt,
+//         summary
+//       }
+//     })
+//   )
+
+//   return posts
+//   // return typedResponse.results.map((post) => {
+//   //   return {
+//   //     id: post.id,
+//   //     title: post.properties.title.title[0].plain_text,
+//   //     slug: post.properties.slug.rich_text[0].plain_text,
+//   //     tags: post.properties.tags.multi_select.map((tag) => tag.name),
+//   //     createdAt: post.created_time
+//   //   }
+//   // })
+// }
 
 export async function getPost(slug: string) {
   const response = await notion.databases.query({

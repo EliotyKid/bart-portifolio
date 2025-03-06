@@ -1,3 +1,13 @@
+export type BlogPostInterface = {
+  id: string;
+  title: string;
+  slug: string;
+  tags: string[];
+  createdAt: string;
+  summary: string;
+};
+
+
 export interface NotionDatabaseResponse {
   object: string;
   results: Result[];

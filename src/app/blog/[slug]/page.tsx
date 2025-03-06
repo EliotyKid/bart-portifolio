@@ -2,6 +2,10 @@ import { getPost } from "@/services/notion"
 import ReactMarkdown from 'react-markdown'
 
 export default async function BlogPost({params}: {params: {slug: string}}){
+if (!params?.slug){
+  return <div>Erro: Slug não encontrado</div>
+}
+
   const post = await getPost(params.slug)
   return(
     <div className="h-dvh">

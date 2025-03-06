@@ -1,6 +1,6 @@
 const SearchBlog = () => {
   return ( 
-    <div>
+    <div className="w-full h-[300px] bg-slate-500 p-4">
       search
     </div>
    );
